@@ -29,7 +29,7 @@ def numericEC(ec):
 
 #df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminderDataFiveYear.csv')
 #Read data
-df = pd.read_csv('D:/CUNY/608/Project04/riverkeeper_data_2013.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/akulapa/Akula-DATA608-Module4/master/Question02/riverkeeper_data_2013.csv')
 
 #Remove < and > signs and tidy data
 for idx in df.index:
@@ -55,9 +55,43 @@ dfFull = df
 
 df = df[['Site','EnteroCount',"FourDayRainTotal"]]
 sites = df.Site.unique()
-infoDf = pd.DataFrame()
 
-for site in sites:
+#overAlldf = df[['EnteroCount',"FourDayRainTotal"]]
+#overAllCorDf = overAlldf.corr()
+#eCorDf = overAllCorDf[overAllCorDf['EnteroCount'] != 1]
+#eCorVal = eCorDf['EnteroCount']
+#eCorVal = round(float(eCorVal),3)
+#msg1 = 'Overall Correlation Between Enterococcus Count And Rainfal: ' + str(eCorVal)
+
+app = dash.Dash()
+
+app.layout = html.Div([
+    html.H3('Water Quality Information System'),
+    html.H4('Correlation Between Enterococcus Count And Rainfall At Each Site'),
+    dcc.Dropdown(
+        id='field-dropdown',
+        options=[{'label': s, 'value': s} for s in sites],
+        value=sites[0],
+        clearable=False
+    ),
+    dtbl.DataTable(
+        # Initialise the rows
+        rows=[{}],
+        row_selectable=False,
+        filterable=False,
+        sortable=False,
+        editable=False,
+        selected_row_indices=[],
+        id='table'
+        )
+])
+
+@app.callback(
+    dash.dependencies.Output('table', 'rows'),
+    [dash.dependencies.Input('field-dropdown', 'value')])
+def update_site(site):
+    infoDf = pd.DataFrame()
+    
     #Filter by site
     siteFulldf = dfFull[dfFull['Site'] == site]
     siteDf = df[df['Site'] == site]
@@ -75,39 +109,14 @@ for site in sites:
     
     data = {'Site':site, 'Correlation Coefficient':round(eCorVal,3), 'Geo.Mean Enterococcus Count':round(gMean,3), 'Avg. Rainfall':round(avgRain,3), 'Last Sample Date':lastSample.strftime('%m/%d/%Y')}
     infoDf = infoDf.append(data, ignore_index=True)
-
-if (len(infoDf) == 0):
-    data = {'Site':'', 'Correlation Coefficient':'', 'Geo.Mean Enterococcus Count':'', 'Avg. Rainfall':'', 'Last Sample Date':''}
-    infoDf = infoDf.append(data, ignore_index=True)
-
-cols = ['Site', 'Correlation Coefficient', 'Geo.Mean Enterococcus Count', 'Avg. Rainfall', 'Last Sample Date']
-infoDf = infoDf[cols]
-
-overAlldf = df[['EnteroCount',"FourDayRainTotal"]]
-overAllCorDf = overAlldf.corr()
-eCorDf = overAllCorDf[overAllCorDf['EnteroCount'] != 1]
-eCorVal = eCorDf['EnteroCount']
-eCorVal = round(float(eCorVal),3)
-
-msg1 = 'Overall Correlation Between Enterococcus Count And Rainfal: ' + str(eCorVal)
-
-app = dash.Dash()
-
-app.layout = html.Div([
-    html.H3('Water Quality Information System'),
-    html.H4('Correlation Between Enterococcus Count And Rainfall At Each Site'),
-    dtbl.DataTable(
-        # Initialise the rows
-        rows=infoDf.to_dict('records'),
-        row_selectable=False,
-        filterable=False,
-        sortable=False,
-        editable=False,
-        selected_row_indices=[],
-        id='table'
-        ),
-    html.Div(id='msgs', children=msg1)
-])
-
+    
+    if (len(infoDf) == 0):
+        data = {'Site':'', 'Correlation Coefficient':'', 'Geo.Mean Enterococcus Count':'', 'Avg. Rainfall':'', 'Last Sample Date':''}
+        infoDf = infoDf.append(data, ignore_index=True)
+    
+    cols = ['Site', 'Correlation Coefficient', 'Geo.Mean Enterococcus Count', 'Avg. Rainfall', 'Last Sample Date']
+    infoDf = infoDf[cols]
+    return(infoDf.to_dict('records'))
+    
 if __name__ == '__main__':
     app.run_server(debug=True)

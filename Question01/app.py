@@ -29,7 +29,7 @@ def numericEC(ec):
 
 #df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminderDataFiveYear.csv')
 #Read data
-df = pd.read_csv('D:/CUNY/608/Project04/riverkeeper_data_2013.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/akulapa/Akula-DATA608-Module4/master/Question01/riverkeeper_data_2013.csv')
 
 #Remove < and > signs and tidy data
 for idx in df.index:
@@ -65,7 +65,6 @@ app.layout = html.Div([
         value=sDates[0],
         clearable=False
     ),
-     html.Div(id='river-info'),
      html.Div([   dtbl.DataTable(
         # Initialise the rows
         rows=[{}],
@@ -75,7 +74,8 @@ app.layout = html.Div([
         editable=False,
         selected_row_indices=[],
         id='table'
-    )
+    ),
+     html.Div(id='river-info')
     ])
 ])
 

@@ -49,10 +49,13 @@ for idx in df.index:
 #Convert EnteroCount to int
 df['EnteroCount'] = df['EnteroCount'].values.astype(np.int64)
 df['FourDayRainTotal'] = df['FourDayRainTotal'].values.astype(np.float64)
-df = df.sort_values(by=['Site'],ascending=0)
+df['Enterococcus Count'] = df['EnteroCount'].values.astype(np.int64)
+df['Four Day Rain Total'] = df['FourDayRainTotal'].values.astype(np.float64)
+
+df['Dt'] = pd.to_datetime(df.Date)
+df = df.sort_values(by=['Dt'],ascending=0)
 
 dfFull = df
-
 df = df[['Site','EnteroCount',"FourDayRainTotal"]]
 sites = df.Site.unique()
 
@@ -83,6 +86,17 @@ app.layout = html.Div([
         editable=False,
         selected_row_indices=[],
         id='table'
+        ),
+    html.H4('Samples Collected'),
+    dtbl.DataTable(
+        # Initialise the rows
+        rows=[{}],
+        row_selectable=False,
+        filterable=False,
+        sortable=False,
+        editable=False,
+        selected_row_indices=[],
+        id='table1'
         )
 ])
 
@@ -117,6 +131,20 @@ def update_site(site):
     cols = ['Site', 'Correlation Coefficient', 'Geo.Mean Enterococcus Count', 'Avg. Rainfall', 'Last Sample Date']
     infoDf = infoDf[cols]
     return(infoDf.to_dict('records'))
+    
+@app.callback(
+    dash.dependencies.Output('table1', 'rows'),
+    [dash.dependencies.Input('field-dropdown', 'value')])
+def update_details(site):
+    
+    #Filter by site
+    siteFulldf = dfFull[dfFull['Site'] == site]
+    
+    siteFulldf = siteFulldf[['Site','Date', 'Enterococcus Count',"Four Day Rain Total"]]
+    
+    cols = ['Site','Date', 'Enterococcus Count',"Four Day Rain Total"]
+    siteFulldf = siteFulldf[cols]
+    return(siteFulldf.to_dict('records'))
     
 if __name__ == '__main__':
     app.run_server(debug=True)
